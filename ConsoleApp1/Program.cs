@@ -11,6 +11,11 @@ abstract class Table
     }
 
     public abstract void Rezer();
+
+    public int GetNumber()
+    {
+        return Number;
+    }
 }
 
 class RestaurantTable : Table
@@ -18,7 +23,7 @@ class RestaurantTable : Table
     private bool isRezer;
     private static int AllTables = 0;
 
-    public int Seats { get; private set; }
+    public int Seats { get; }
     public string Description { get; set; }
 
     public RestaurantTable(int number, int seats) : base(number)
@@ -102,8 +107,8 @@ class Program
         }
 
         // b) HTML
-        GenerateHtml(typeof(Table), "Table.html");
-        GenerateHtml(typeof(RestaurantTable), "RestaurantTable.html");
+        Html(typeof(Table), "Table.html");
+        Html(typeof(RestaurantTable), "RestaurantTable.html");
 
         // 2
         // a)
@@ -125,7 +130,13 @@ class Program
         if (Params != null)
         {
             object tableWithParams = Params.Invoke(new object[] { 1, 4 });
-            Console.WriteLine("Объект создан с помощью конструктора с параметрами.");
+            RestaurantTable restaurantTable = tableWithParams as RestaurantTable;
+            if (restaurantTable != null)
+            {
+                // Выводим информацию о созданном объекте
+                Console.WriteLine("Объект создан:");
+                Console.WriteLine($"Номер столика: {restaurantTable.GetNumber()}, Мест: {restaurantTable.Seats}");
+            }
         }
 
         Console.WriteLine("\nСписок методов класса:");
@@ -151,59 +162,91 @@ class Program
         }
     }
 
-    static void GenerateHtml(Type type, string fileName)
+    static void Html(Type type, string fileName)
     {
         using (StreamWriter writer = new StreamWriter(fileName))
         {
-            writer.WriteLine("<html>");
-            writer.WriteLine("<head><title>Documentation for " + type.Name + "</title></head>");
+            writer.WriteLine("<!DOCTYPE html>");
+            writer.WriteLine("<html lang=\"en\">");
+            writer.WriteLine("<head>");
+            writer.WriteLine("    <meta charset=\"UTF-8\">");
+            writer.WriteLine("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+            writer.WriteLine("    <title>Documentation for " + type.Name + "</title>");
+            writer.WriteLine("    <style>");
+            writer.WriteLine("        body { font-family: Arial, sans-serif; margin: 20px; }");
+            writer.WriteLine("        h1 { color: #333; }");
+            writer.WriteLine("        h2 { color: #555; }");
+            writer.WriteLine("        h3 { color: #777; }");
+            writer.WriteLine("        p { margin: 5px 0; }");
+            writer.WriteLine("        .member { margin-left: 20px; }");
+            writer.WriteLine("    </style>");
+            writer.WriteLine("</head>");
             writer.WriteLine("<body>");
-            writer.WriteLine("<h1>" + type.Name + "</h1>");
-            writer.WriteLine("<hr>");
+            writer.WriteLine("    <h1>Documentation for " + type.Name + "</h1>");
+            writer.WriteLine("    <hr>");
 
-            // Публичные элементы
-            writer.WriteLine("<h2>Public Members</h2>");
-            writer.WriteLine("<h3>Fields</h3>");
+
+            writer.WriteLine("    <h2>Public Members</h2>");
+
+            writer.WriteLine("    <h3>Fields</h3>");
             foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
-                writer.WriteLine("<p>" + field.FieldType + " " + field.Name + "</p>");
+                writer.WriteLine("    <div class=\"member\">");
+                writer.WriteLine("        <p><strong>Type:</strong> " + field.FieldType + "</p>");
+                writer.WriteLine("        <p><strong>Name:</strong> " + field.Name + "</p>");
+                writer.WriteLine("    </div>");
             }
 
-            writer.WriteLine("<h3>Properties</h3>");
+            writer.WriteLine("    <h3>Properties</h3>");
             foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
-                writer.WriteLine("<p>" + property.PropertyType + " " + property.Name + "</p>");
+                writer.WriteLine("    <div class=\"member\">");
+                writer.WriteLine("        <p><strong>Type:</strong> " + property.PropertyType + "</p>");
+                writer.WriteLine("        <p><strong>Name:</strong> " + property.Name + "</p>");
+                writer.WriteLine("    </div>");
             }
 
-            writer.WriteLine("<h3>Methods</h3>");
+            writer.WriteLine("    <h3>Methods</h3>");
             foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
                 if (!method.IsSpecialName)
                 {
-                    writer.WriteLine("<p>" + method.ReturnType + " " + method.Name + "</p>");
+                    writer.WriteLine("    <div class=\"member\">");
+                    writer.WriteLine("        <p><strong>Return Type:</strong> " + method.ReturnType + "</p>");
+                    writer.WriteLine("        <p><strong>Name:</strong> " + method.Name + "</p>");
+                    writer.WriteLine("    </div>");
                 }
             }
 
-            // Приватные и защищенные элементы
-            writer.WriteLine("<h2>Non-Public Members</h2>");
-            writer.WriteLine("<h3>Fields</h3>");
+
+            writer.WriteLine("    <h2>Non-Public Members</h2>");
+            writer.WriteLine("    <h3>Fields</h3>");
             foreach (FieldInfo field in type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
             {
-                writer.WriteLine("<p>" + field.FieldType + " " + field.Name + "</p>");
+                writer.WriteLine("    <div class=\"member\">");
+                writer.WriteLine("        <p><strong>Type:</strong> " + field.FieldType + "</p>");
+                writer.WriteLine("        <p><strong>Name:</strong> " + field.Name + "</p>");
+                writer.WriteLine("    </div>");
             }
 
-            writer.WriteLine("<h3>Properties</h3>");
+            writer.WriteLine("    <h3>Properties</h3>");
             foreach (PropertyInfo property in type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
             {
-                writer.WriteLine("<p>" + property.PropertyType + " " + property.Name + "</p>");
+                writer.WriteLine("    <div class=\"member\">");
+                writer.WriteLine("        <p><strong>Type:</strong> " + property.PropertyType + "</p>");
+                writer.WriteLine("        <p><strong>Name:</strong> " + property.Name + "</p>");
+                writer.WriteLine("    </div>");
             }
 
-            writer.WriteLine("<h3>Methods</h3>");
+            writer.WriteLine("    <h3>Methods</h3>");
             foreach (MethodInfo method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
             {
                 if (!method.IsSpecialName)
                 {
-                    writer.WriteLine("<p>" + method.ReturnType + " " + method.Name + "</p>");
+                    writer.WriteLine("    <div class=\"member\">");
+                    writer.WriteLine("        <p><strong>Return Type:</strong> " + method.ReturnType + "</p>");
+                    writer.WriteLine("        <p><strong>Name:</strong> " + method.Name + "</p>");
+                    writer.WriteLine("    </div>");
                 }
             }
 
